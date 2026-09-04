@@ -107,7 +107,13 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                       : "border-marea-steel-blue/40 opacity-70 hover:opacity-100"
                   }`}
                 >
-                  <Image src={img} alt={`Miniatura ${idx + 1}`} fill className="object-cover" />
+                  <Image
+                    src={img}
+                    alt={`Miniatura ${idx + 1}`}
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -267,7 +273,13 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 className="group bg-marea-navy/60 rounded-2xl border border-marea-steel-blue/30 overflow-hidden hover:border-marea-sand/40 transition-all p-4 flex gap-4 items-center"
               >
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-marea-navy-dark flex-shrink-0">
-                  <Image src={rel.images[0]} alt={rel.name} fill className="object-cover" />
+                  <Image
+                    src={rel.images[0]}
+                    alt={rel.name}
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="text-[10px] font-mono text-marea-sand uppercase">

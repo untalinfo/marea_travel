@@ -3,6 +3,7 @@
 import { formatCOP } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
 import {
+  ArrowRight,
   MessageCircle,
   Minus,
   Plus,
@@ -13,18 +14,17 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import Link from "next/link";
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, removeFromCart, updateQuantity, getTotalPrice, clearCart } =
+  const { items, isOpen, closeCart, removeFromCart, updateQuantity, getTotalPrice } =
     useCartStore();
 
-  const [checkoutMode, setCheckoutMode] = useState<"whatsapp" | "online">("whatsapp");
   const totalPrice = getTotalPrice();
 
   if (!isOpen) return null;
 
-  // Genera el mensaje estructurado de pedido para WhatsApp Business (muy efectivo en Colombia)
+  // Genera el mensaje estructurado de pedido para WhatsApp Business
   const generateWhatsAppLink = () => {
     const phone = "573000000000"; // Número de WhatsApp Marea Travel
     let message = "*¡Hola Marea Travel! 🌊*\nQuiero realizar el siguiente pedido:\n\n";
@@ -62,6 +62,7 @@ export function CartDrawer() {
               </span>
             </div>
             <button
+              type="button"
               onClick={closeCart}
               className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-marea-navy-light transition-colors"
             >
@@ -83,6 +84,7 @@ export function CartDrawer() {
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={closeCart}
                   className="mt-2 px-4 py-2 bg-marea-sand text-marea-navy-dark font-bold text-xs rounded-xl hover:bg-marea-sand-hover transition-colors"
                 >
@@ -100,6 +102,7 @@ export function CartDrawer() {
                       src={product.images[0]}
                       alt={product.name}
                       fill
+                      sizes="80px"
                       className="object-cover"
                     />
                   </div>
@@ -114,6 +117,7 @@ export function CartDrawer() {
                     <div className="flex items-center gap-3 mt-2">
                       <div className="flex items-center border border-marea-steel-blue/40 rounded-lg bg-marea-navy-dark">
                         <button
+                          type="button"
                           onClick={() => updateQuantity(product.id, quantity - 1)}
                           className="p-1 hover:text-marea-sand text-slate-400 transition-colors"
                         >
@@ -123,6 +127,7 @@ export function CartDrawer() {
                           {quantity}
                         </span>
                         <button
+                          type="button"
                           onClick={() => updateQuantity(product.id, quantity + 1)}
                           className="p-1 hover:text-marea-sand text-slate-400 transition-colors"
                         >
@@ -131,6 +136,7 @@ export function CartDrawer() {
                       </div>
 
                       <button
+                        type="button"
                         onClick={() => removeFromCart(product.id)}
                         className="text-slate-500 hover:text-red-400 transition-colors"
                         title="Eliminar"
@@ -155,7 +161,7 @@ export function CartDrawer() {
                 <div className="flex justify-between text-xs text-slate-400">
                   <span>Envío en Colombia</span>
                   <span className="text-emerald-400 font-medium">
-                    {totalPrice >= 120000 ? "GRATIS" : "Por calcular"}
+                    {totalPrice >= 120000 ? "¡GRATIS! 🎉" : "Calculado en el checkout"}
                   </span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-white pt-2 border-t border-marea-steel-blue/20">
@@ -172,19 +178,27 @@ export function CartDrawer() {
                   <ShieldCheck className="w-3 h-3 text-marea-sand" /> Acero 316L Garantizado
                 </span>
                 <span className="flex items-center gap-1">
-                  <Truck className="w-3 h-3 text-marea-sand" /> Envíos Rápidos
+                  <Truck className="w-3 h-3 text-marea-sand" /> Envíos Seguros
                 </span>
               </div>
 
               {/* Actions */}
-              <div className="space-y-2">
+              <div className="space-y-2.5 pt-1">
+                <Link
+                  href="/checkout"
+                  onClick={closeCart}
+                  className="w-full py-3.5 px-4 bg-marea-sand hover:bg-marea-sand-hover text-marea-navy-dark font-extrabold rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-marea-sand/20 text-sm hover:scale-[1.02]"
+                >
+                  Proceder al Pago (Checkout) <ArrowRight className="w-4 h-4" />
+                </Link>
+
                 <a
                   href={generateWhatsAppLink()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-emerald-600/20 text-sm"
+                  className="w-full py-2.5 px-4 bg-marea-navy border border-emerald-500/40 text-emerald-400 hover:bg-emerald-950/40 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all text-xs"
                 >
-                  <MessageCircle className="w-5 h-5" /> Confirmar Pedido por WhatsApp
+                  <MessageCircle className="w-4 h-4" /> O pedir directo por WhatsApp
                 </a>
               </div>
             </div>
