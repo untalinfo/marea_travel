@@ -6,13 +6,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Formatea valores numéricos a Pesos Colombianos (COP)
- * Ej: 85000 -> "$ 85.000 COP"
+ * Formatea valores numéricos a Pesos Colombianos (COP) de manera 100% determinista
+ * entre el servidor (SSR) y el navegador (Cliente), evitando errores de hidratación.
+ * Ej: 79000 -> "$ 79.000 COP"
  */
 export function formatCOP(amount: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  const rounded = Math.round(amount);
+  const formatted = rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `$ ${formatted} COP`;
 }
