@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f9fa;
+  --foreground: #0d1b2a;
+
+  /* Marea Travel Palette */
+  --marea-navy-dark: #0a192f;
+  --marea-navy: #0d1b2a;
+  --marea-navy-light: #1b263b;
+  --marea-steel-blue: #415a77;
+  --marea-steel-light: #778da9;
+  --marea-sand-gold: #c5a059;
+  --marea-sand-hover: #b38e46;
+  --marea-foam: #f8f9fa;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Color aliases for Tailwind classes */
+  --color-marea-navy-dark: var(--marea-navy-dark);
+  --color-marea-navy: var(--marea-navy);
+  --color-marea-navy-light: var(--marea-navy-light);
+  --color-marea-steel-blue: var(--marea-steel-blue);
+  --color-marea-steel-light: var(--marea-steel-light);
+  --color-marea-sand: var(--marea-sand-gold);
+  --color-marea-sand-hover: var(--marea-sand-hover);
+  --color-marea-foam: var(--marea-foam);
+
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Custom utility for badge glow */
+.badge-waterproof {
+  background: linear-gradient(135deg, rgba(13, 27, 42, 0.9) 0%, rgba(27, 38, 59, 0.9) 100%);
+  border: 1px solid rgba(197, 160, 89, 0.3);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #e5c158 0%, #c5a059 50%, #9e7b36 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

@@ -1,0 +1,116 @@
+import type { Product } from "@/types";
+
+export const MOCK_PRODUCTS: Product[] = [
+  {
+    id: "prod-1",
+    name: "Cadena Dije Ballena Marea 316L",
+    slug: "cadena-dije-ballena-marea-316l",
+    description:
+      "Cadena minimalista con dije de cola de ballena esculpida en acero inoxidable 316L. Ultra resistente al agua salada, sudor y sol.",
+    price: 79000,
+    originalPrice: 95000,
+    category: "coleccion-marina",
+    categoryName: "Colección Marina",
+    images: [
+      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1611591475179-62cd34608c02?auto=format&fit=crop&w=800&q=80",
+    ],
+    isFeatured: true,
+    material: "Acero Inoxidable 316L (Grado Marino)",
+    waterproof: true,
+    inStock: true,
+    stockQuantity: 12,
+  },
+  {
+    id: "prod-2",
+    name: "Pulsera Ola Minimalista Steel",
+    slug: "pulsera-ola-minimalista-steel",
+    description:
+      "Pulsera de eslabones finos con silueta de ola marina. Diseñada para acompañarte en la playa, en el mar o en la montaña.",
+    price: 65000,
+    originalPrice: 79000,
+    category: "pulseras",
+    categoryName: "Pulseras",
+    images: [
+      "https://images.unsplash.com/photo-1611591475179-62cd34608c02?auto=format&fit=crop&w=800&q=80",
+    ],
+    isFeatured: true,
+    material: "Acero Inoxidable 316L",
+    waterproof: true,
+    inStock: true,
+    stockQuantity: 15,
+  },
+  {
+    id: "prod-3",
+    name: "Anillo Brújula del Viajero",
+    slug: "anillo-brujula-del-viajero",
+    description:
+      "Anillo unisex grabado con la rosa de los vientos. Tu recordatorio diario de mantener la dirección en cualquier aventura.",
+    price: 58000,
+    category: "anillos",
+    categoryName: "Anillos",
+    images: [
+      "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80",
+    ],
+    isFeatured: true,
+    material: "Acero Inoxidable 316L Pulido",
+    waterproof: true,
+    inStock: true,
+    stockQuantity: 8,
+  },
+  {
+    id: "prod-4",
+    name: "Cadena Tiburón Mantarraya Minimal",
+    slug: "cadena-tiburon-mantarraya-minimal",
+    description:
+      "Dije geométrico de mantarraya marina sobre cadena delicada. Resistencia extrema al agua de mar y al sol de verano.",
+    price: 82000,
+    originalPrice: 99000,
+    category: "coleccion-marina",
+    categoryName: "Colección Marina",
+    images: [
+      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80",
+    ],
+    isFeatured: true,
+    material: "Acero Inoxidable 316L",
+    waterproof: true,
+    inStock: true,
+    stockQuantity: 10,
+  },
+  {
+    id: "prod-5",
+    name: "Pulsera Náutica Cabo & Acero",
+    slug: "pulsera-nautica-cabo-acero",
+    description:
+      "Combinación de cabo de paracord marino de alta resistencia con broche en acero inoxidable grabado con el logo Marea.",
+    price: 62000,
+    category: "pulseras",
+    categoryName: "Pulseras",
+    images: [
+      "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=800&q=80",
+    ],
+    isFeatured: false,
+    material: "Cabo Marino + Acero 316L",
+    waterproof: true,
+    inStock: true,
+    stockQuantity: 20,
+  },
+  {
+    id: "prod-6",
+    name: "Cadena Ancla de la Libertad",
+    slug: "cadena-ancla-de-la-libertad",
+    description:
+      "Dije de ancla clásica renovada con líneas limpias y modernas. Simboliza firmeza y calma frente a cualquier marea.",
+    price: 75000,
+    category: "cadenas",
+    categoryName: "Cadenas",
+    images: [
+      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
+    ],
+    isFeatured: false,
+    material: "Acero Inoxidable 316L Grado Quirúrgico",
+    waterproof: true,
+    inStock: true,
+    stockQuantity: 14,
+  },
+];
