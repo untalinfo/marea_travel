@@ -17,7 +17,7 @@ export default async function HomePage() {
       <Navbar />
 
       {/* Hero Banner */}
-      <main className="flex-1">
+      <main suppressHydrationWarning className="flex-1">
         <HeroBanner />
 
         {/* Catálogo con datos de Supabase + filtro interactivo */}
