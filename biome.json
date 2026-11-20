@@ -23,12 +23,12 @@
     "rules": {
       "recommended": true,
       "a11y": {
-        "useButtonType": "off",
-        "useKeyWithClickEvents": "off",
-        "noSvgWithoutTitle": "off"
+        "useButtonType": "error",
+        "useKeyWithClickEvents": "error",
+        "noSvgWithoutTitle": "error"
       },
       "correctness": {
-        "noUnusedImports": "warn"
+        "noUnusedImports": "error"
       }
     }
   },

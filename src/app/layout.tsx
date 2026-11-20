@@ -1,33 +1,47 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const cormorantGaramond = Cormorant_Garamond({
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-cormorant",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
 });
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mareatravel.co";
 
 export const metadata: Metadata = {
-  title: "Marea Travel | Accesorios Minimalistas en Acero Inoxidable 316L",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Marea Travel — Joyería marina en acero inoxidable 316L | Colombia",
+    template: "%s | Marea Travel",
+  },
   description:
-    "Accesorios de viaje y temática marina a prueba de agua (waterproof). Envíos a toda Colombia.",
+    "Accesorios minimalistas en acero quirúrgico 316L resistentes al agua de mar, piscina y uso diario. Envíos a toda Colombia.",
+  openGraph: {
+    type: "website",
+    locale: "es_CO",
+    siteName: "Marea Travel",
+    title: "Marea Travel — Joyería marina en acero 316L",
+    description:
+      "Piezas minimalistas en acero inoxidable 316L diseñadas para acompañarte bajo el sol y el agua salada. Envíos en Colombia.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="es"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="es-CO"
+      className={`${cormorantGaramond.variable} ${plusJakartaSans.variable} h-full antialiased`}
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col">
-        {children}
-      </body>
+      <body className="min-h-full flex flex-col bg-canvas text-ink">{children}</body>
     </html>
   );
 }

@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Marea Travel — E-commerce MVP
 
-## Getting Started
+Tienda en línea de joyería y accesorios minimalistas en acero inoxidable 316L resistentes al agua, diseñada para el mercado colombiano.
 
-First, run the development server:
+## Stack Tecnológico
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Framework:** Next.js 16 (App Router, Turbopack) + React 19 + TypeScript
+- **Estilos:** Tailwind CSS v4 (sistema editorial *Sol, Sal y Acero*)
+- **Base de datos y Storage:** Supabase (`@supabase/supabase-js`)
+- **Estado del carrito:** Zustand (`persist` en `localStorage`)
+- **Calidad de código:** Biome (`pnpm lint` / `pnpm format`)
+- **Gestor de paquetes:** `pnpm` (no utilizar `npm` ni generar `package-lock.json`)
+
+## Variables de Entorno (`.env.local`)
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
+
+# Panel administrativo (/admin)
+NEXT_PUBLIC_ADMIN_PIN=tu_pin_seguro
+
+# WhatsApp oficial para pedidos en Colombia (código país + número sin signos)
+NEXT_PUBLIC_WHATSAPP_NUMBER=573001234567
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Comandos Principales
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Instalar dependencias
+pnpm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Servidor de desarrollo
+pnpm dev
 
-## Learn More
+# Verificación de lint y formato (Biome)
+pnpm lint
 
-To learn more about Next.js, take a look at the following resources:
+# Verificación de tipos TypeScript
+pnpm exec tsc --noEmit
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Compilación de producción
+pnpm build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Base de Datos y Políticas en Supabase
 
-## Deploy on Vercel
+1. Ejecuta `supabase/schema.sql` en el SQL Editor de tu proyecto Supabase para crear tablas, RLS de catálogo y el bucket `product-images`.
+2. Ejecuta `supabase/admin_policies.sql` para habilitar la lectura total, creación, edición, eliminación y carga de imágenes desde `/admin`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Recursos Visuales y Google Flow
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+La aplicación incluye recursos SVG locales en `public/images/` como respaldo inmediato. Para reemplazarlos con fotografía editorial generada en Google Flow (`.webp` y packshots 1:1 para subir desde `/admin`), consulta la guía paso a paso en `docs/GOOGLE_FLOW_PROMPTS.md`.

@@ -2,8 +2,7 @@
 
 import { ProductCard } from "@/components/store/ProductCard";
 import type { Product } from "@/types";
-import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface ProductCatalogProps {
   initialProducts: Product[];
@@ -12,13 +11,19 @@ interface ProductCatalogProps {
 export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("todas");
 
-  const categories: { id: string; label: string }[] = [
-    { id: "todas", label: "Todos los Accesorios" },
-    { id: "coleccion-marina", label: "🌊 Colección Marina" },
-    { id: "cadenas", label: "Cadenas Minimalistas" },
-    { id: "pulseras", label: "Pulseras" },
-    { id: "anillos", label: "Anillos del Viajero" },
-  ];
+  const categories = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const product of initialProducts) {
+      if (product.category && !map.has(product.category)) {
+        map.set(product.category, product.categoryName || product.category);
+      }
+    }
+
+    return [
+      { id: "todas", label: "Todas las piezas" },
+      ...Array.from(map.entries()).map(([id, label]) => ({ id, label })),
+    ];
+  }, [initialProducts]);
 
   const filteredProducts =
     selectedCategory === "todas"
@@ -26,45 +31,84 @@ export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
       : initialProducts.filter((p) => p.category === selectedCategory);
 
   return (
-    <section id="catalogo" className="py-20 px-4 max-w-7xl mx-auto space-y-12">
-      {/* Header del Catálogo */}
-      <div className="text-center space-y-4 max-w-2xl mx-auto">
-        <span className="text-xs font-mono tracking-widest text-marea-sand uppercase flex items-center justify-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-marea-sand" /> MVP Curado • Edición Limitada
-        </span>
-        <h2 className="text-3xl sm:text-5xl font-extrabold text-white">
-          Colección <span className="gold-gradient-text">Marea Travel</span>
-        </h2>
-        <p className="text-slate-400 text-sm sm:text-base">
-          Piezas en Acero Inoxidable 316L. Diseñadas para llevar puestas en el mar, en tus viajes y
-          todos los días.
-        </p>
+    <section id="catalogo" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-10 border-b border-hairline">
+        <div className="space-y-3 max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sand-text">
+            Catálogo Marea Travel
+          </p>
+          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink">
+            Piezas esenciales para llevar siempre puestas
+          </h2>
+          <p className="text-sm sm:text-base text-ink-muted">
+            Selección en acero inoxidable 316L pensada para la playa, la ciudad y cada trayecto.
+          </p>
+        </div>
+
+        {/* Category Filter */}
+        <search aria-label="Filtrar colección por categoría" className="w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2">
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors border ${
+                    isSelected
+                      ? "bg-ink text-canvas border-ink"
+                      : "bg-surface text-ink-muted border-control-border hover:border-ink hover:text-ink"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+        </search>
       </div>
 
-      {/* Categorías Pills */}
-      <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 border ${
-              selectedCategory === cat.id
-                ? "bg-marea-sand text-marea-navy-dark border-marea-sand shadow-lg shadow-marea-sand/20 scale-105 font-bold"
-                : "bg-marea-navy text-slate-300 border-marea-steel-blue/30 hover:border-marea-sand/40 hover:text-white"
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Grid de Productos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {/* Product grid or clean empty state */}
+      {filteredProducts.length === 0 ? (
+        initialProducts.length === 0 && selectedCategory === "todas" ? (
+          <div className="py-16 text-center space-y-4 bg-surface rounded-2xl border border-hairline mt-10 px-6">
+            <p className="font-display text-2xl font-semibold text-ink">
+              El catálogo está actualizándose en este momento.
+            </p>
+            <p className="text-sm text-ink-muted max-w-md mx-auto">
+              Muy pronto verás nuestras piezas disponibles en acero inoxidable 316L para envío en
+              Colombia.
+            </p>
+          </div>
+        ) : (
+          <div className="py-16 text-center space-y-4 bg-surface rounded-2xl border border-hairline mt-10 px-6">
+            <p className="font-display text-2xl font-semibold text-ink">
+              No encontramos piezas en esta categoría
+            </p>
+            <p className="text-sm text-ink-muted max-w-md mx-auto">
+              Explora el catálogo completo para ver los accesorios disponibles en acero inoxidable
+              316L.
+            </p>
+            {selectedCategory !== "todas" && (
+              <button
+                type="button"
+                onClick={() => setSelectedCategory("todas")}
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-ink text-canvas text-xs font-semibold hover:bg-ocean transition-colors"
+              >
+                Ver toda la colección
+              </button>
+            )}
+          </div>
+        )
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-10">
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

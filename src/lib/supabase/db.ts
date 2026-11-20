@@ -1,3 +1,4 @@
+import { PRODUCT_FALLBACK_SRC } from "@/lib/brand-assets";
 import type { Product } from "@/types";
 import { createClient } from "@supabase/supabase-js";
 
@@ -15,8 +16,49 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, supabaseAnonKey);
 }
 
+interface RawImageRow {
+  image_url: string;
+  is_primary?: boolean | null;
+  display_order?: number | null;
+}
+
+interface RawVariantRow {
+  stock_quantity?: number | null;
+}
+
+function mapImages(images: RawImageRow[] | RawImageRow | null | undefined): string[] {
+  if (!Array.isArray(images) || images.length === 0) {
+    return [PRODUCT_FALLBACK_SRC];
+  }
+
+  const sorted = [...images].sort((a, b) => {
+    if (Boolean(a.is_primary) !== Boolean(b.is_primary)) {
+      return a.is_primary ? -1 : 1;
+    }
+    return (a.display_order ?? 0) - (b.display_order ?? 0);
+  });
+
+  const urls = sorted.map((img) => img.image_url).filter((url) => Boolean(url?.trim()));
+  return urls.length > 0 ? urls : [PRODUCT_FALLBACK_SRC];
+}
+
+function mapStock(variants: RawVariantRow[] | RawVariantRow | null | undefined): {
+  inStock: boolean;
+  stockQuantity: number;
+} {
+  if (!Array.isArray(variants) || variants.length === 0) {
+    return { inStock: true, stockQuantity: 10 };
+  }
+
+  const total = variants.reduce((sum, v) => sum + Math.max(0, Number(v.stock_quantity) || 0), 0);
+  return {
+    inStock: total > 0,
+    stockQuantity: total,
+  };
+}
+
 /**
- * Obtiene la lista de todos los productos activos directamente desde Supabase.
+ * Obtiene la lista de productos activos directamente desde Supabase.
  */
 export async function getProducts(): Promise<Product[]> {
   try {
@@ -35,7 +77,8 @@ export async function getProducts(): Promise<Product[]> {
         waterproof,
         is_featured,
         category:categories(slug, name),
-        images:product_images(image_url)
+        images:product_images(image_url, is_primary, display_order),
+        variants:product_variants(stock_quantity)
       `)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
@@ -51,7 +94,7 @@ export async function getProducts(): Promise<Product[]> {
 
     return products.map((p) => {
       const categoryData = Array.isArray(p.category) ? p.category[0] : p.category;
-      const imagesData = Array.isArray(p.images) ? p.images.map((img) => img.image_url) : [];
+      const stock = mapStock(p.variants);
 
       return {
         id: p.id,
@@ -62,17 +105,12 @@ export async function getProducts(): Promise<Product[]> {
         originalPrice: p.original_price ? Number(p.original_price) : undefined,
         category: (categoryData?.slug as Product["category"]) || "coleccion-marina",
         categoryName: categoryData?.name || "Colección Marina",
-        images:
-          imagesData.length > 0
-            ? imagesData
-            : [
-                "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
-              ],
+        images: mapImages(p.images),
         isFeatured: p.is_featured,
         material: p.material,
         waterproof: p.waterproof,
-        inStock: true,
-        stockQuantity: 10,
+        inStock: stock.inStock,
+        stockQuantity: stock.stockQuantity,
       };
     });
   } catch (err) {
@@ -82,7 +120,7 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 /**
- * Obtiene el detalle de un producto específico por su slug desde Supabase.
+ * Obtiene el detalle de un producto activo específico por su slug desde Supabase.
  */
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
@@ -101,7 +139,8 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
         waterproof,
         is_featured,
         category:categories(slug, name),
-        images:product_images(image_url)
+        images:product_images(image_url, is_primary, display_order),
+        variants:product_variants(stock_quantity)
       `)
       .eq("slug", slug)
       .eq("is_active", true)
@@ -112,9 +151,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     }
 
     const categoryData = Array.isArray(product.category) ? product.category[0] : product.category;
-    const imagesData = Array.isArray(product.images)
-      ? product.images.map((img) => img.image_url)
-      : [];
+    const stock = mapStock(product.variants);
 
     return {
       id: product.id,
@@ -125,17 +162,12 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
       originalPrice: product.original_price ? Number(product.original_price) : undefined,
       category: (categoryData?.slug as Product["category"]) || "coleccion-marina",
       categoryName: categoryData?.name || "Colección Marina",
-      images:
-        imagesData.length > 0
-          ? imagesData
-          : [
-              "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
-            ],
+      images: mapImages(product.images),
       isFeatured: product.is_featured,
       material: product.material,
       waterproof: product.waterproof,
-      inStock: true,
-      stockQuantity: 10,
+      inStock: stock.inStock,
+      stockQuantity: stock.stockQuantity,
     };
   } catch (err) {
     console.error(`Error buscando producto con slug ${slug}:`, err);
