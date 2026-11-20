@@ -1,13 +1,6 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
 /**
- * Formatea valores numéricos a Pesos Colombianos (COP) de manera 100% determinista
- * entre el servidor (SSR) y el navegador (Cliente), evitando errores de hidratación.
+ * Formatea valores numéricos a Pesos Colombianos (COP) de manera determinista
+ * entre servidor (SSR) y navegador (Cliente), evitando diferencias de hidratación.
  * Ej: 79000 -> "$ 79.000 COP"
  */
 export function formatCOP(amount: number): string {

@@ -1,4 +1,11 @@
-export type Category = "cadenas" | "pulseras" | "anillos" | "dijes" | "coleccion-marina";
+export type Category =
+  | "coleccion-marina"
+  | "cadenas"
+  | "pulseras"
+  | "anillos"
+  | "aretes"
+  | "dijes"
+  | (string & {});
 
 export interface Product {
   id: string;
@@ -11,23 +18,26 @@ export interface Product {
   categoryName: string;
   images: string[];
   isFeatured?: boolean;
-  material: string; // ej: "Acero Inoxidable 316L"
+  material: string;
   waterproof: boolean;
   inStock: boolean;
   stockQuantity: number;
 }
 
+export interface ProductImageItem {
+  id: string;
+  imageUrl: string;
+  displayOrder: number;
+  isPrimary: boolean;
+}
+
+export interface AdminProduct extends Product {
+  isActive: boolean;
+  sku?: string;
+  imageRecords?: ProductImageItem[];
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
-}
-
-export interface CustomerDetails {
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  department: string;
-  notes?: string;
 }

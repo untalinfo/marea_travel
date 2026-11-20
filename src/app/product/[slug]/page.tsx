@@ -16,16 +16,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!product) {
     return {
-      title: "Producto no encontrado | Marea Travel",
+      title: "Producto no encontrado",
     };
   }
 
   return {
-    title: `${product.name} | Marea Travel`,
+    title: product.name,
     description: product.description,
     openGraph: {
-      title: `${product.name} - Acero Inoxidable 316L Waterproof`,
+      title: `${product.name} | Marea Travel`,
       description: product.description,
+      locale: "es_CO",
       images: [
         {
           url: product.images[0],
@@ -50,7 +51,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const relatedProducts = allProducts.filter((p) => p.id !== product.id);
 
   return (
-    <div className="min-h-screen bg-marea-navy-dark text-slate-100 flex flex-col font-sans selection:bg-marea-sand selection:text-marea-navy-dark">
+    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-ocean selection:text-canvas">
       <Navbar />
 
       <main className="flex-1">

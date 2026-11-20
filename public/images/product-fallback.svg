@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000" fill="none">
+  <defs>
+    <linearGradient id="pedestalBg" x1="0" y1="0" x2="1000" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F6F4EF" />
+      <stop offset="100%" stop-color="#EDE9E0" />
+    </linearGradient>
+    <linearGradient id="steelPendant" x1="340" y1="260" x2="660" y2="700" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="45%" stop-color="#C5CED6" />
+      <stop offset="80%" stop-color="#768594" />
+      <stop offset="100%" stop-color="#EAEFF2" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="1000" fill="url(#pedestalBg)" />
+  <rect x="36" y="36" width="928" height="928" rx="24" stroke="#DFD9CE" stroke-width="2" />
+
+  <!-- Minimalist limestone pedestal shadow & top -->
+  <ellipse cx="500" cy="700" rx="240" ry="52" fill="#DFD9CE" fill-opacity="0.65" />
+  <ellipse cx="500" cy="680" rx="220" ry="44" fill="#FFFFFF" stroke="#DFD9CE" stroke-width="2" />
+
+  <!-- Fine chain arc -->
+  <path
+    d="M365 210C365 380 430 490 500 490C570 490 635 380 635 210"
+    stroke="url(#steelPendant)"
+    stroke-width="7"
+    stroke-linecap="round"
+  />
+
+  <!-- Sculpted medallion -->
+  <circle cx="500" cy="545" r="68" fill="#F6F4EF" stroke="url(#steelPendant)" stroke-width="12" />
+  <path
+    d="M454 548C474 526 490 526 502 544C514 562 530 562 548 540"
+    stroke="#0F2438"
+    stroke-opacity="0.65"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+  <circle cx="500" cy="462" r="10" stroke="url(#steelPendant)" stroke-width="5" fill="#F6F4EF" />
+</svg>

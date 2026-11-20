@@ -1,53 +1,109 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f9fa;
-  --foreground: #0d1b2a;
-
-  /* Marea Travel Palette */
-  --marea-navy-dark: #0a192f;
-  --marea-navy: #0d1b2a;
-  --marea-navy-light: #1b263b;
-  --marea-steel-blue: #415a77;
-  --marea-steel-light: #778da9;
-  --marea-sand-gold: #c5a059;
-  --marea-sand-hover: #b38e46;
-  --marea-foam: #f8f9fa;
+  --bg-canvas: #f6f4ef;
+  --bg-surface: #ffffff;
+  --bg-surface-alt: #ede9e0;
+  --ink-primary: #0f2438;
+  --ink-secondary: #435668;
+  --accent-ocean: #164e63;
+  --accent-sand: #9c7a3c;
+  --accent-sand-text: #7a5c24;
+  --border-hairline: #dfd9ce;
+  --border-control: #6e7b88;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-canvas: var(--bg-canvas);
+  --color-surface: var(--bg-surface);
+  --color-surface-alt: var(--bg-surface-alt);
+  --color-ink: var(--ink-primary);
+  --color-ink-muted: var(--ink-secondary);
+  --color-ocean: var(--accent-ocean);
+  --color-sand: var(--accent-sand);
+  --color-sand-text: var(--accent-sand-text);
+  --color-hairline: var(--border-hairline);
+  --color-control-border: var(--border-control);
 
-  /* Color aliases for Tailwind classes */
-  --color-marea-navy-dark: var(--marea-navy-dark);
-  --color-marea-navy: var(--marea-navy);
-  --color-marea-navy-light: var(--marea-navy-light);
-  --color-marea-steel-blue: var(--marea-steel-blue);
-  --color-marea-steel-light: var(--marea-steel-light);
-  --color-marea-sand: var(--marea-sand-gold);
-  --color-marea-sand-hover: var(--marea-sand-hover);
-  --color-marea-foam: var(--marea-foam);
+  /* Legacy palette aliases kept for /checkout compatibility */
+  --color-marea-navy-dark: #0a192f;
+  --color-marea-navy: #0d1b2a;
+  --color-marea-steel-blue: #415a77;
+  --color-marea-sand: #c5a059;
+  --color-marea-sand-hover: #b38e46;
 
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --font-sans: var(--font-jakarta), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-cormorant), Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  overflow-x: hidden;
+  background-color: var(--bg-canvas);
+  color: var(--ink-primary);
+  font-family: var(--font-jakarta), system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  text-align: start;
+  overflow-x: clip;
 }
 
-/* Custom utility for badge glow */
-.badge-waterproof {
-  background: linear-gradient(135deg, rgba(13, 27, 42, 0.9) 0%, rgba(27, 38, 59, 0.9) 100%);
-  border: 1px solid rgba(197, 160, 89, 0.3);
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
-.gold-gradient-text {
-  background: linear-gradient(135deg, #e5c158 0%, #c5a059 50%, #9e7b36 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+p {
+  text-wrap: pretty;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--ink-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Native <dialog> modal scroll containment (modern-web-guidance) */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  background-color: rgba(15, 36, 56, 0.45);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  dialog {
+    forced-color-adjust: auto;
+  }
 }
