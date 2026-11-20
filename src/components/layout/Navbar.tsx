@@ -27,7 +27,10 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 w-full transition-all duration-300">
+    <header
+      suppressHydrationWarning
+      className="sticky top-0 z-40 w-full transition-all duration-300"
+    >
       {/* Top Banner de Envíos & Garantía */}
       <div className="bg-marea-navy-dark text-slate-300 text-xs py-2 px-4 border-b border-marea-steel-blue/20">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
@@ -46,6 +49,7 @@ export function Navbar() {
 
       {/* Main Navbar */}
       <nav
+        suppressHydrationWarning
         className={`w-full transition-all duration-300 border-b ${
           isScrolled
             ? "bg-marea-navy/95 backdrop-blur-md border-marea-steel-blue/30 py-3 shadow-xl"
