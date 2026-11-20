@@ -93,6 +93,12 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-canvas/80">
           <p>© {new Date().getFullYear()} Marea Travel Colombia. Todos los derechos reservados.</p>
+          <Link
+            href="/admin"
+            className="inline-block py-0.5 text-canvas/85 hover:text-canvas underline underline-offset-4 transition-colors focus-visible:outline-canvas"
+          >
+            Panel administrativo
+          </Link>
         </div>
       </div>
     </footer>
