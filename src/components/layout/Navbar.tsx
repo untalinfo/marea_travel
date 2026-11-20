@@ -1,160 +1,159 @@
 "use client";
 
 import { useCartStore } from "@/store/cartStore";
-import { Compass, Menu, ShieldCheck, ShoppingBag, Truck, Waves, X } from "lucide-react";
+import { Menu, ShoppingBag, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+
+const NAV_LINKS = [
+  { href: "/", label: "Inicio" },
+  { href: "/#catalogo", label: "Colección" },
+  { href: "/#materiales", label: "Acero 316L" },
+  { href: "/#historia", label: "Historia" },
+] as const;
 
 export function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const { openCart, getTotalItems } = useCartStore();
   const totalItems = mounted ? getTotalItems() : 0;
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileMenuOpen]);
+
   return (
-    <header className="sticky top-0 z-40 w-full transition-all duration-300">
-      {/* Top Banner de Envíos & Garantía */}
-      <div className="bg-marea-navy-dark text-slate-300 text-xs py-2 px-4 border-b border-marea-steel-blue/20">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-          <div className="flex items-center gap-2">
-            <Truck className="w-3.5 h-3.5 text-marea-sand" />
-            <span>Envíos a toda Colombia | PSE, Nequi y Tarjetas</span>
-          </div>
-          <div className="flex items-center gap-4 text-[11px] text-slate-400">
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-marea-sand" /> Acero Inoxidable 316L (Resistente
-              al agua de mar)
-            </span>
-          </div>
-        </div>
+    <header className="sticky top-0 z-40 w-full bg-canvas/95 backdrop-blur-sm border-b border-hairline">
+      {/* Compact single-line announcement bar */}
+      <div className="bg-ink text-canvas text-xs py-2 px-4">
+        <p className="max-w-7xl mx-auto text-center tracking-wide truncate">
+          Envíos a toda Colombia · Envío gratis desde $120.000 COP
+        </p>
       </div>
 
-      {/* Main Navbar */}
-      <nav
-        className={`w-full transition-all duration-300 border-b ${
-          isScrolled
-            ? "bg-marea-navy/95 backdrop-blur-md border-marea-steel-blue/30 py-3 shadow-xl"
-            : "bg-marea-navy border-marea-steel-blue/20 py-4"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-marea-navy-light to-marea-steel-blue/40 border border-marea-sand/40 flex items-center justify-center text-marea-sand transition-transform group-hover:scale-105 shadow-md">
-              <Waves className="w-5 h-5 text-marea-sand" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-xl tracking-wider text-white flex items-center gap-1.5 font-sans">
-                MAREA <span className="gold-gradient-text">TRAVEL</span>
-              </span>
-              <span className="text-[10px] tracking-widest text-slate-400 font-mono uppercase">
-                Waterproof Accessories
-              </span>
-            </div>
+      <nav aria-label="Navegación principal" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between py-3.5 gap-4">
+          {/* Brand wordmark */}
+          <Link href="/" className="flex items-center gap-3 shrink-0 group">
+            <img
+              src="/images/marea-mark.svg"
+              alt=""
+              width={36}
+              height={36}
+              aria-hidden="true"
+              className="w-9 h-9 rounded-full"
+            />
+            <span className="font-display text-xl sm:text-2xl font-semibold tracking-[0.12em] text-ink uppercase">
+              Marea Travel
+            </span>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
-            <Link
-              href="/"
-              className="hover:text-marea-sand transition-colors py-1 border-b-2 border-transparent hover:border-marea-sand"
-            >
-              Inicio
-            </Link>
-            <Link
-              href="#catalogo"
-              className="hover:text-marea-sand transition-colors py-1 border-b-2 border-transparent hover:border-marea-sand flex items-center gap-1"
-            >
-              <Compass className="w-4 h-4 text-marea-sand" />
-              Colección Marina
-            </Link>
-            <Link
-              href="#garantia"
-              className="hover:text-marea-sand transition-colors py-1 border-b-2 border-transparent hover:border-marea-sand"
-            >
-              Acero 316L
-            </Link>
-            <Link
-              href="#historia"
-              className="hover:text-marea-sand transition-colors py-1 border-b-2 border-transparent hover:border-marea-sand"
-            >
-              Historia (@oskarinfo)
-            </Link>
-          </div>
+          {/* Desktop links */}
+          <ul className="hidden md:flex items-center gap-7 text-sm font-medium text-ink-muted">
+            {NAV_LINKS.map((item) => {
+              const isCurrent = item.href === "/" && pathname === "/";
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={isCurrent ? "page" : undefined}
+                    className={`py-1.5 transition-colors border-b-2 ${
+                      isCurrent
+                        ? "text-ink border-sand font-semibold"
+                        : "border-transparent hover:text-ink hover:border-hairline"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
 
-          {/* Actions & Cart Icon */}
-          <div className="flex items-center gap-4">
+          {/* Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
+              type="button"
+              data-cart-trigger
               onClick={openCart}
-              className="relative p-2.5 text-slate-200 hover:text-marea-sand bg-marea-navy-light/60 hover:bg-marea-navy-light border border-marea-steel-blue/30 rounded-full transition-all flex items-center justify-center group"
-              aria-label="Ver Carrito de Compras"
+              aria-label={
+                totalItems > 0
+                  ? `Abrir carrito de compras (${totalItems} productos)`
+                  : "Abrir carrito de compras"
+              }
+              className="relative inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-surface border border-control-border text-ink hover:border-ink transition-colors text-xs font-semibold"
             >
-              <ShoppingBag className="w-5 h-5 transition-transform group-hover:scale-110" />
+              <ShoppingBag className="w-4 h-4 text-ocean" aria-hidden="true" />
+              <span className="hidden sm:inline">Carrito</span>
               {mounted && totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-marea-sand text-marea-navy-dark text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-ocean text-canvas text-[11px] font-bold tabular-nums">
                   {totalItems}
                 </span>
               )}
             </button>
 
-            {/* Mobile menu toggle */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-300 hover:text-white"
-              aria-label="Abrir Menú"
+              ref={menuButtonRef}
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
+              aria-label={mobileMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+              className="md:hidden inline-flex items-center justify-center p-2.5 rounded-full border border-control-border bg-surface text-ink hover:border-ink transition-colors"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5" aria-hidden="true" />
+              ) : (
+                <Menu className="w-5 h-5" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile drawer list (same single <nav> landmark) */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-marea-navy-dark border-b border-marea-steel-blue/30 px-4 pt-4 pb-6 space-y-3 mt-3 animate-in slide-in-from-top duration-200">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-marea-navy-light hover:text-marea-sand"
-            >
-              Inicio
-            </Link>
-            <Link
-              href="#catalogo"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-marea-navy-light hover:text-marea-sand"
-            >
-              Colección Marina & Accesorios
-            </Link>
-            <Link
-              href="#garantia"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-marea-navy-light hover:text-marea-sand"
-            >
-              Garantía Acero 316L (Waterproof)
-            </Link>
-            <Link
-              href="#historia"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-marea-navy-light hover:text-marea-sand"
-            >
-              Nuestra Historia (@oskarinfo)
-            </Link>
-          </div>
+          <ul
+            id="mobile-nav-menu"
+            className="md:hidden border-t border-hairline py-4 space-y-1 bg-canvas"
+          >
+            {NAV_LINKS.map((item) => {
+              const isCurrent = item.href === "/" && pathname === "/";
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={isCurrent ? "page" : undefined}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isCurrent
+                        ? "bg-surface text-ink font-semibold border border-hairline"
+                        : "text-ink-muted hover:text-ink hover:bg-surface-alt/70"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </nav>
     </header>
