@@ -48,6 +48,30 @@ export interface CreateOrderResult {
  */
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
   try {
+    if (input.items.length === 0) {
+      return { success: false, error: "El pedido no contiene productos." };
+    }
+
+    const hasInvalidItem = input.items.some(
+      (item) =>
+        !item.productId?.trim() ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity <= 0 ||
+        !Number.isFinite(item.unitPrice) ||
+        item.unitPrice < 0,
+    );
+
+    if (hasInvalidItem) {
+      return {
+        success: false,
+        error: "Uno o más productos del pedido tienen datos inválidos.",
+      };
+    }
+
+    if (!Number.isFinite(input.totalAmount) || input.totalAmount <= 0) {
+      return { success: false, error: "El monto total del pedido no es válido." };
+    }
+
     const supabase = getSupabaseClient();
 
     const customerId = crypto.randomUUID();
@@ -100,6 +124,10 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
 
     if (itemsError) {
       console.error("Error guardando items de la orden en Supabase:", itemsError);
+      return {
+        success: false,
+        error: "No se pudieron registrar los productos de tu pedido.",
+      };
     }
 
     return {

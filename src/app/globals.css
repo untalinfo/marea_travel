@@ -25,13 +25,6 @@
   --color-hairline: var(--border-hairline);
   --color-control-border: var(--border-control);
 
-  /* Legacy palette aliases kept for /checkout compatibility */
-  --color-marea-navy-dark: #0a192f;
-  --color-marea-navy: #0d1b2a;
-  --color-marea-steel-blue: #415a77;
-  --color-marea-sand: #c5a059;
-  --color-marea-sand-hover: #b38e46;
-
   --font-sans: var(--font-jakarta), system-ui, -apple-system, sans-serif;
   --font-display: var(--font-cormorant), Georgia, serif;
 }
