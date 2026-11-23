@@ -1,18 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-function getSupabaseClient() {
-  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!rawUrl || !rawKey) {
-    throw new Error("Faltan las variables de entorno de Supabase en .env.local");
-  }
-
-  const supabaseUrl = rawUrl.trim().replace(/^["']|["']$/g, "");
-  const supabaseAnonKey = rawKey.trim().replace(/^["']|["']$/g, "");
-
-  return createClient(supabaseUrl, supabaseAnonKey);
-}
+import { getSupabaseClient } from "@/lib/supabase/client";
 
 export interface CreateOrderInput {
   customer: {

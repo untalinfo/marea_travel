@@ -17,9 +17,6 @@ Tienda en línea de joyería y accesorios minimalistas en acero inoxidable 316L 
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
 
-# Panel administrativo (/admin)
-NEXT_PUBLIC_ADMIN_PIN=tu_pin_seguro
-
 # WhatsApp oficial para pedidos en Colombia (código país + número sin signos)
 NEXT_PUBLIC_WHATSAPP_NUMBER=573001234567
 ```
@@ -46,7 +43,26 @@ pnpm build
 ## Base de Datos y Políticas en Supabase
 
 1. Ejecuta `supabase/schema.sql` en el SQL Editor de tu proyecto Supabase para crear tablas, RLS de catálogo y el bucket `product-images`.
-2. Ejecuta `supabase/admin_policies.sql` para habilitar la lectura total, creación, edición, eliminación y carga de imágenes desde `/admin`.
+2. Ejecuta `supabase/admin_policies.sql`. Elimina las políticas abiertas anteriores y restringe la escritura (productos, imágenes, variantes y bucket `product-images`) a usuarios con rol `admin`. La lectura del catálogo y la creación de pedidos siguen siendo públicas.
+3. Si algún precio quedó incorrecto, ejecuta `supabase/fix_prices.sql` para restaurar los precios de los cuatro productos semilla.
+
+## Acceso al Panel Administrativo (`/admin`)
+
+`/admin` usa Supabase Auth (correo + contraseña). La variable `NEXT_PUBLIC_ADMIN_PIN` ya no existe y puede eliminarse de tu `.env.local`. La verificación del rol en el navegador es solo de experiencia de usuario; la seguridad real la aplican las políticas RLS en Supabase.
+
+1. En Supabase: **Authentication > Users > Add user** (correo y contraseña).
+2. Ejecuta `supabase/admin_policies.sql` en el SQL Editor.
+3. Otorga el rol de administrador (usa `app_metadata`, que el usuario no puede editar):
+
+   ```sql
+   UPDATE auth.users
+   SET raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}'::jsonb
+   WHERE email = 'TU_CORREO';
+   ```
+
+4. Inicia sesión en `/admin`. Si ya tenías una sesión abierta, ciérrala y vuelve a entrar para que el rol llegue al token.
+
+Validaciones de precio en el panel: precio de venta mínimo de $15.000 COP y descuento máximo del 60% (`MIN_PRICE_COP` y `MAX_DISCOUNT_RATIO` en `src/lib/supabase/admin.ts`).
 
 ## Recursos Visuales y Google Flow
 

@@ -1,20 +1,6 @@
 import { PRODUCT_FALLBACK_SRC } from "@/lib/brand-assets";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import type { Product } from "@/types";
-import { createClient } from "@supabase/supabase-js";
-
-function getSupabaseClient() {
-  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!rawUrl || !rawKey) {
-    throw new Error("Faltan las variables de entorno de Supabase en .env.local");
-  }
-
-  const supabaseUrl = rawUrl.trim().replace(/^["']|["']$/g, "");
-  const supabaseAnonKey = rawKey.trim().replace(/^["']|["']$/g, "");
-
-  return createClient(supabaseUrl, supabaseAnonKey);
-}
 
 interface RawImageRow {
   image_url: string;
