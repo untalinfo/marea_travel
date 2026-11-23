@@ -1,19 +1,41 @@
 import { PRODUCT_FALLBACK_SRC } from "@/lib/brand-assets";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import type { AdminProduct, ProductImageItem } from "@/types";
-import { createClient } from "@supabase/supabase-js";
 
-function getSupabaseClient() {
-  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+/** Minimum allowed sale price in COP. Guards against typos like 9.000 instead of 79.000. */
+export const MIN_PRICE_COP = 15_000;
+/** Maximum discount allowed between original price and sale price (0.6 = 60%). */
+export const MAX_DISCOUNT_RATIO = 0.6;
 
-  if (!rawUrl || !rawKey) {
-    throw new Error("Faltan las variables de entorno de Supabase en .env.local");
+/** Highest original price accepted for a given sale price. */
+export function getMaxOriginalPrice(price: number): number {
+  return Math.floor(price / (1 - MAX_DISCOUNT_RATIO) + 1e-6);
+}
+
+/**
+ * Validates sale price and optional original price. Returns a Spanish error
+ * message, or null when the values are acceptable.
+ */
+export function validateProductPrices(price: number, originalPrice?: number | null): string | null {
+  if (!Number.isFinite(price) || price <= 0) {
+    return "El precio de venta debe ser mayor a $0 COP.";
   }
 
-  const supabaseUrl = rawUrl.trim().replace(/^["']|["']$/g, "");
-  const supabaseAnonKey = rawKey.trim().replace(/^["']|["']$/g, "");
+  if (price < MIN_PRICE_COP) {
+    return `El precio de venta no puede ser menor a $${MIN_PRICE_COP.toLocaleString("es-CO")} COP. Revisa que no falte un cero.`;
+  }
 
-  return createClient(supabaseUrl, supabaseAnonKey);
+  if (originalPrice !== undefined && originalPrice !== null) {
+    if (!Number.isFinite(originalPrice) || originalPrice <= price) {
+      return "El precio anterior debe ser mayor al precio de venta.";
+    }
+
+    if (originalPrice > getMaxOriginalPrice(price)) {
+      return `El descuento no puede superar el ${Math.round(MAX_DISCOUNT_RATIO * 100)}%. Con este precio de venta, el precio anterior máximo es $${getMaxOriginalPrice(price).toLocaleString("es-CO")} COP.`;
+    }
+  }
+
+  return null;
 }
 
 function normalizeProductImageUrls(imageUrls: string[]): string[] {
@@ -211,6 +233,11 @@ export async function createAdminProduct(
   input: NewProductInput,
 ): Promise<{ success: boolean; error?: string; productId?: string }> {
   try {
+    const priceError = validateProductPrices(input.price, input.originalPrice || null);
+    if (priceError) {
+      return { success: false, error: priceError };
+    }
+
     const supabase = getSupabaseClient();
     const productId = crypto.randomUUID();
 
@@ -298,19 +325,9 @@ export async function updateAdminProduct(
       return { success: false, error: "El nombre del producto es obligatorio." };
     }
 
-    if (!Number.isFinite(input.price) || input.price <= 0) {
-      return { success: false, error: "El precio de venta debe ser mayor a $0 COP." };
-    }
-
-    if (
-      input.originalPrice !== undefined &&
-      input.originalPrice !== null &&
-      (!Number.isFinite(input.originalPrice) || input.originalPrice <= input.price)
-    ) {
-      return {
-        success: false,
-        error: "El precio anterior debe ser mayor al precio de venta.",
-      };
+    const priceError = validateProductPrices(input.price, input.originalPrice);
+    if (priceError) {
+      return { success: false, error: priceError };
     }
 
     const cleanedUrls = normalizeProductImageUrls(input.imageUrls);
@@ -430,8 +447,13 @@ export async function updateAdminProduct(
 export async function deleteAdminProduct(productId: string): Promise<boolean> {
   try {
     const supabase = getSupabaseClient();
-    const { error } = await supabase.from("products").delete().eq("id", productId);
-    return !error;
+    // RLS filters rows instead of raising an error, so confirm a row was actually deleted.
+    const { data, error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", productId)
+      .select("id");
+    return !error && (data?.length ?? 0) > 0;
   } catch (err) {
     console.error("Error eliminando producto:", err);
     return false;
@@ -447,11 +469,13 @@ export async function toggleProductStatus(
 ): Promise<boolean> {
   try {
     const supabase = getSupabaseClient();
-    const { error } = await supabase
+    // RLS filters rows instead of raising an error, so confirm a row was actually updated.
+    const { data, error } = await supabase
       .from("products")
       .update({ is_active: !currentStatus })
-      .eq("id", productId);
-    return !error;
+      .eq("id", productId)
+      .select("id");
+    return !error && (data?.length ?? 0) > 0;
   } catch (err) {
     console.error("Error cambiando estado del producto:", err);
     return false;
