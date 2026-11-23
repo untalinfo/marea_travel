@@ -4,6 +4,8 @@ import { StoreImage } from "@/components/store/StoreImage";
 import { PRODUCT_FALLBACK_SRC } from "@/lib/brand-assets";
 import {
   type CategoryOption,
+  MAX_DISCOUNT_RATIO,
+  MIN_PRICE_COP,
   createAdminProduct,
   deleteAdminProduct,
   getAdminProducts,
@@ -11,9 +13,12 @@ import {
   toggleProductStatus,
   updateAdminProduct,
   uploadProductImage,
+  validateProductPrices,
 } from "@/lib/supabase/admin";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import { formatCOP } from "@/lib/utils";
 import type { AdminProduct } from "@/types";
+import type { Session } from "@supabase/supabase-js";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -38,9 +43,10 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "MAREA2026";
-const SESSION_KEY = "marea_admin_session";
-const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas
+// UX-only check: real enforcement happens in Supabase via RLS (public.is_admin()).
+function isAdminSession(session: Session | null): boolean {
+  return session?.user?.app_metadata?.role === "admin";
+}
 
 interface GalleryImageDraft {
   id: string;
@@ -270,8 +276,10 @@ function ProductGalleryEditor({
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [pinInput, setPinInput] = useState("");
-  const [pinError, setPinError] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"nuevo" | "inventario">("nuevo");
   const [categories, setCategories] = useState<CategoryOption[]>([]);
@@ -398,52 +406,65 @@ export function AdminDashboard() {
     null,
   );
 
-  // Validar sesión de 24 horas al montar
+  // Restaurar la sesión de Supabase Auth al montar y escuchar cambios
   useEffect(() => {
+    let supabase: ReturnType<typeof getSupabaseClient>;
     try {
-      localStorage.removeItem("marea_admin_auth");
-
-      const stored = localStorage.getItem(SESSION_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (
-          parsed &&
-          typeof parsed === "object" &&
-          parsed.auth === true &&
-          typeof parsed.expiresAt === "number" &&
-          Number.isFinite(parsed.expiresAt) &&
-          Date.now() < parsed.expiresAt
-        ) {
-          setIsAuthenticated(true);
-        } else {
-          localStorage.removeItem(SESSION_KEY);
-          setIsAuthenticated(false);
-        }
-      }
+      supabase = getSupabaseClient();
     } catch {
-      localStorage.removeItem(SESSION_KEY);
-    } finally {
       setIsCheckingAuth(false);
+      return;
     }
+
+    let active = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setIsAuthenticated(isAdminSession(data.session));
+      setIsCheckingAuth(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      setIsAuthenticated(isAdminSession(session));
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput.trim() === ADMIN_PIN) {
-      setIsAuthenticated(true);
-      setPinError(false);
-      setPinInput("");
-      try {
-        const sessionData = {
-          auth: true,
-          expiresAt: Date.now() + SESSION_DURATION_MS,
-        };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-      } catch {
-        // Ignorar errores de almacenamiento
+    if (isSigningIn) return;
+    setIsSigningIn(true);
+    setLoginError(null);
+
+    try {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailInput.trim(),
+        password: passwordInput,
+      });
+
+      if (error || !data.session) {
+        setLoginError("Correo o contraseña incorrectos. Verifica e intenta nuevamente.");
+        return;
       }
-    } else {
-      setPinError(true);
+
+      if (!isAdminSession(data.session)) {
+        await supabase.auth.signOut({ scope: "local" });
+        setLoginError("Esta cuenta no tiene permisos de administrador.");
+        return;
+      }
+
+      setIsAuthenticated(true);
+      setPasswordInput("");
+    } catch {
+      setLoginError("No se pudo iniciar sesión. Intenta nuevamente en unos minutos.");
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
@@ -462,13 +483,14 @@ export function AdminDashboard() {
     setEditImages([]);
     setIsSavingEdit(false);
     setIsAuthenticated(false);
-    setPinInput("");
-    setPinError(false);
-    try {
-      localStorage.removeItem(SESSION_KEY);
-    } catch {
-      // Ignorar errores de almacenamiento
-    }
+    setEmailInput("");
+    setPasswordInput("");
+    setLoginError(null);
+    getSupabaseClient()
+      .auth.signOut({ scope: "local" })
+      .catch(() => {
+        // La sesión local se limpia igualmente
+      });
   };
 
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -773,6 +795,12 @@ export function AdminDashboard() {
       return;
     }
 
+    const editPriceError = validateProductPrices(numericPrice, numericOriginalPrice);
+    if (editPriceError) {
+      setEditError(editPriceError);
+      return;
+    }
+
     const finalImageUrls = Array.from(
       new Set(
         editImages
@@ -866,6 +894,17 @@ export function AdminDashboard() {
         type: "error",
         message: "El precio anterior debe ser un número válido mayor o igual a $0 COP.",
       });
+      return;
+    }
+
+    const createPriceError = validateProductPrices(
+      Number(price),
+      String(originalPrice).trim() !== "" && Number(originalPrice) > 0
+        ? Number(originalPrice)
+        : null,
+    );
+    if (createPriceError) {
+      setFeedback({ type: "error", message: createPriceError });
       return;
     }
 
@@ -978,7 +1017,7 @@ export function AdminDashboard() {
     );
   }
 
-  // Pantalla de acceso por PIN
+  // Pantalla de inicio de sesión
   if (!isAuthenticated) {
     return (
       <div className="min-h-[65vh] flex items-center justify-center px-4">
@@ -995,48 +1034,72 @@ export function AdminDashboard() {
                 Panel de administración
               </h1>
               <p className="text-xs text-ink-muted">
-                Ingresa tu PIN de acceso para gestionar el catálogo de Marea Travel.
+                Inicia sesión con tu cuenta de administrador para gestionar el catálogo de Marea
+                Travel.
               </p>
             </div>
           </div>
 
           <div className="space-y-2 text-left">
-            <label htmlFor="admin-pin" className="block text-xs font-semibold text-ink">
-              PIN de acceso
+            <label htmlFor="admin-email" className="block text-xs font-semibold text-ink">
+              Correo electrónico
             </label>
             <input
-              id="admin-pin"
-              name="pin"
+              id="admin-email"
+              name="email"
+              type="email"
+              required
+              autoComplete="username"
+              value={emailInput}
+              onChange={(e) => {
+                setEmailInput(e.target.value);
+                if (loginError) setLoginError(null);
+              }}
+              placeholder="tu@correo.com"
+              aria-invalid={loginError !== null}
+              aria-describedby={loginError ? "admin-login-error" : undefined}
+              className="w-full bg-canvas border border-control-border rounded-xl px-4 py-3 text-sm text-ink placeholder:text-ink-muted"
+            />
+          </div>
+
+          <div className="space-y-2 text-left">
+            <label htmlFor="admin-password" className="block text-xs font-semibold text-ink">
+              Contraseña
+            </label>
+            <input
+              id="admin-password"
+              name="password"
               type="password"
               required
               autoComplete="current-password"
-              value={pinInput}
+              value={passwordInput}
               onChange={(e) => {
-                setPinInput(e.target.value);
-                if (pinError) setPinError(false);
+                setPasswordInput(e.target.value);
+                if (loginError) setLoginError(null);
               }}
-              placeholder="Ingresa tu PIN"
-              aria-invalid={pinError}
-              aria-describedby={pinError ? "admin-pin-error" : undefined}
+              placeholder="Ingresa tu contraseña"
+              aria-invalid={loginError !== null}
+              aria-describedby={loginError ? "admin-login-error" : undefined}
               className="w-full bg-canvas border border-control-border rounded-xl px-4 py-3 text-sm text-ink placeholder:text-ink-muted"
             />
-            {pinError && (
+            {loginError && (
               <p
-                id="admin-pin-error"
+                id="admin-login-error"
                 role="alert"
                 className="text-xs text-red-700 flex items-center gap-1.5 pt-1"
               >
                 <ShieldAlert className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                PIN incorrecto. Verifica e intenta nuevamente.
+                {loginError}
               </p>
             )}
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 px-5 rounded-full bg-ink hover:bg-ocean text-canvas font-semibold text-sm transition-colors"
+            disabled={isSigningIn}
+            className="w-full py-3 px-5 rounded-full bg-ink hover:bg-ocean text-canvas font-semibold text-sm transition-colors disabled:opacity-60"
           >
-            Acceder al panel
+            {isSigningIn ? "Ingresando..." : "Acceder al panel"}
           </button>
         </form>
       </div>
@@ -1226,7 +1289,7 @@ export function AdminDashboard() {
                     id="price"
                     name="price"
                     type="number"
-                    min={1}
+                    min={MIN_PRICE_COP}
                     step="any"
                     required
                     value={price}
@@ -1258,6 +1321,10 @@ export function AdminDashboard() {
                     placeholder="Ej: 95000"
                     className="w-full bg-canvas border border-control-border rounded-xl px-3.5 py-2.5 text-sm text-ink tabular-nums placeholder:text-ink-muted"
                   />
+                  <p className="text-xs text-ink-muted">
+                    Mínimo ${MIN_PRICE_COP.toLocaleString("es-CO")} COP. Descuento máximo{" "}
+                    {Math.round(MAX_DISCOUNT_RATIO * 100)}%.
+                  </p>
                 </div>
               </div>
 
@@ -1678,7 +1745,7 @@ export function AdminDashboard() {
                     id="edit-product-price"
                     name="editPrice"
                     type="number"
-                    min={1}
+                    min={MIN_PRICE_COP}
                     step="any"
                     required
                     value={editPrice}
@@ -1723,6 +1790,10 @@ export function AdminDashboard() {
                         Antes: {formatCOP(Number(editOriginalPrice))}
                       </p>
                     )}
+                  <p className="text-xs text-ink-muted">
+                    Venta mínima ${MIN_PRICE_COP.toLocaleString("es-CO")} COP. Descuento máximo{" "}
+                    {Math.round(MAX_DISCOUNT_RATIO * 100)}%.
+                  </p>
                 </div>
               </div>
 
